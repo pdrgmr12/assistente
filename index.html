@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Meu assistente</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #101827;
+      color: white;
+      max-width: 480px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    input, button, a {
+      box-sizing: border-box;
+      font: inherit;
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    input {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    button, a {
+      background: #80d4ff;
+      color: #101827;
+      border: none;
+      cursor: pointer;
+    }
+
+    a {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    li span {
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+
+    ul {
+      padding: 0;
+      list-style: none;
+    }
+
+    #aviso {
+      color: #ffca80;
+    }
+  </style>
+</head>
+<body>
+  <h1>Meu assistente</h1>
+
+  <a href="https://chatgpt.com"
+     target="_blank"
+     rel="noopener noreferrer">
+    Abrir ChatGPT
+  </a>
+
+  <h2>Meus lembretes</h2>
+
+  <form id="formulario">
+    <input
+      id="texto"
+      aria-label="Novo lembrete"
+      placeholder="Ex.: entregar atividade"
+      maxlength="200"
+      required
+    >
+    <button type="submit">Adicionar</button>
+  </form>
+
+  <p id="aviso" role="status"></p>
+  <ul id="lista"></ul>
+
+  <script>
+    const chave = "meu-assistente-lembretes";
+    const lista = document.querySelector("#lista");
+    const texto = document.querySelector("#texto");
+    const aviso = document.querySelector("#aviso");
+
+    let lembretes = [];
+
+    try {
+      const dados = JSON.parse(
+        localStorage.getItem(chave) || "[]"
+      );
+
+      if (Array.isArray(dados)) {
+        lembretes = dados.filter(
+          item => typeof item === "string"
+        );
+      }
+    } catch {
+      aviso.textContent =
+        "Não foi possível carregar os lembretes.";
+    }
+
+    function salvar() {
+      try {
+        localStorage.setItem(
+          chave,
+          JSON.stringify(lembretes)
+        );
+        aviso.textContent = "";
+      } catch {
+        aviso.textContent =
+          "Não foi possível salvar os lembretes.";
+      }
+
+      mostrar();
+    }
+
+    function mostrar() {
+      lista.replaceChildren();
+
+      lembretes.forEach((item, indice) => {
+        const linha = document.createElement("li");
+        const nome = document.createElement("span");
+        const botao = document.createElement("button");
+
+        nome.textContent = item;
+        botao.textContent = "Concluir";
+
+        botao.setAttribute(
+          "aria-label",
+          "Concluir: " + item
+        );
+
+        botao.onclick = () => {
+          lembretes.splice(indice, 1);
+          salvar();
+        };
+
+        linha.append(nome, botao);
+        lista.append(linha);
+      });
+    }
+
+    document.querySelector("#formulario").onsubmit =
+      evento => {
+        evento.preventDefault();
+
+        const valor = texto.value.trim();
+
+        if (!valor) return;
+
+        lembretes.push(valor);
+        texto.value = "";
+        salvar();
+      };
+
+    mostrar();
+  </script>
+</body>
+</html>
